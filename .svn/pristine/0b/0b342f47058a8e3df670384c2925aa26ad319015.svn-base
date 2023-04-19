@@ -1,0 +1,44 @@
+package tools;
+
+import java.awt.Shape;
+import java.util.Locale;
+import javax.swing.ImageIcon;
+import model.DrawingPanel;
+
+public class LineTool extends ShapeTool implements ToolInterface {
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = -4313353356967173684L;
+    
+    /** The name of the shape for the icon. */
+    private static final String SHAPE_NAME = "Line";
+    
+    /** Beginning of the file string. */
+    private static final String FILE_PREFIX = "files/" 
+            + SHAPE_NAME.toLowerCase(Locale.US);
+    
+    /** Ending of the file string, when using a colored icon. */
+    private static final String FILE_SUFFIX = ".gif";
+    
+    /** Ending of the file string, when using a black and white icon. */
+    private static final String BW_SUFFIX = "_bw" + FILE_SUFFIX;
+    
+    
+    public LineTool(final DrawingPanel thePanel) {
+        super(SHAPE_NAME, new ImageIcon(FILE_PREFIX + BW_SUFFIX), thePanel);
+        
+    }
+
+    @Override
+    public Shape calculateShape(final int theX1, final int theY1, 
+            final int theX2, final int theY2) {
+        return super.calculateShape(theX1, theY1, theX2, theY2);
+    }
+    
+    @Override
+    public void changeToolUsed() {
+        myPanel.setCurrentTool(this);
+        super.setIcon(new ImageIcon(FILE_PREFIX + FILE_SUFFIX));
+    }
+
+}

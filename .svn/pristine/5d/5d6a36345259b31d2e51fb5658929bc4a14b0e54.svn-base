@@ -1,0 +1,203 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ * Creates a GUI for the Paint program.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.19
+ */
+public final class PaintGUI {
+    
+    /** A ToolKit. */
+    private static final Toolkit KIT = Toolkit.getDefaultToolkit();
+    
+    /** The Dimension of the screen. */
+    private static final Dimension SCREEN_SIZE = KIT.getScreenSize();
+    
+    /** The width of the screen. */
+    private static final int SCREEN_WIDTH = SCREEN_SIZE.width;
+    
+    /** The height of the screen. */
+    private static final int SCREEN_HEIGHT = SCREEN_SIZE.height;
+    
+    /** The scaling of the JFrame window relative to the size of the screen. */
+    private static final int SCALE = 3;
+    
+    /** The initial brush thickness. */
+    private static final int INITIAL_BRUSH_THICKNESS = 3;
+    
+    /** The max brush thickness. */
+    private static final int MAX_BRUSH_THICKNESS = 15;
+
+    /** The spacing between numbers on the thickness slider. */
+    private static final int MAJOR_TICK_SPACING = 5;
+
+    /** The spacing between tick marks on the thickness slider. */
+    private static final int MINOR_TICK_SPACING = 1;
+    
+    /** The JFrame. */
+    private static final JFrame FRAME = new JFrame("TCSS 305 Paint – Autumn 2022");
+    
+    /** The toolbar. */
+    private JToolBar myToolBar;
+    
+    /** The drawing panel. */
+    private DrawingPanel myDrawingPanel = 
+            new DrawingPanel(SCREEN_WIDTH / SCALE, SCREEN_WIDTH / SCALE);
+    
+    /** The slider. */
+    private JSlider mySlider;
+    
+    /** The collection of shape actions. */
+    private List<ShapeAction> myShapeActions;
+    
+    /** Default GUI constructor. */
+    public PaintGUI() {
+        super();
+        
+        myToolBar = new JToolBar();
+        
+        mySlider = new JSlider();
+        
+        start();
+    }
+    
+    /** Performs all tasks necessary to display the UI. */
+    private void start() {
+        try {           
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        
+        } catch (final UnsupportedLookAndFeelException e) {
+            System.out.println("UnsupportedLookAndFeelException");
+        } catch (final ClassNotFoundException e) {
+            System.out.println("ClassNotFoundException");
+        } catch (final InstantiationException e) {
+            System.out.println("InstantiationException");
+        } catch (final IllegalAccessException e) {
+            System.out.println("IllegalAccessException");
+        }
+        
+        final ImageIcon img = new ImageIcon("files/w_small.png");
+        FRAME.setIconImage(img.getImage());
+        
+        myToolBar = createToolBar();
+
+        FRAME.add(myToolBar, BorderLayout.SOUTH);
+        
+        FRAME.add(myDrawingPanel, BorderLayout.CENTER);
+        
+        FRAME.setJMenuBar(createMenuBar());
+        
+        FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        FRAME.setSize(new Dimension(SCREEN_WIDTH / SCALE, SCREEN_HEIGHT / SCALE));
+        FRAME.setLocationRelativeTo(null);
+        FRAME.setVisible(true);
+        
+    }
+    
+    /** 
+     * Creates the menubar. 
+     * 
+     * @return The menubar.
+     */
+    private JMenuBar createMenuBar() {
+        final JMenuBar mBar = new JMenuBar();
+        final JMenu mOptions = new JMenu("Options");
+        final JMenu mThickness = new JMenu("Thickness");
+        final JMenu mHelp = new JMenu("Help");
+        final JMenu mTools = new JMenu("Tools");
+        
+        final DefaultAction aColor = new DefaultAction("Color...");
+        final DefaultAction aClear = new DefaultAction("Clear");
+        aClear.setEnabled(false);
+        
+        mBar.add(mOptions);
+        mBar.add(mTools);
+        mBar.add(mHelp);
+        
+        mOptions.add(mThickness);
+        mOptions.addSeparator();
+        mOptions.add(aColor);
+        mOptions.addSeparator();
+        mOptions.add(aClear);
+        
+        mySlider = new JSlider(SwingConstants.HORIZONTAL, 0, MAX_BRUSH_THICKNESS,
+                INITIAL_BRUSH_THICKNESS);
+        mySlider.setMajorTickSpacing(MAJOR_TICK_SPACING);
+        mySlider.setMinorTickSpacing(MINOR_TICK_SPACING);
+        mySlider.setPaintLabels(true);
+        mySlider.setPaintTicks(true);
+        mySlider.addChangeListener(new ChangeListener() {
+            /** Called in response to slider events in this window. */
+            @Override
+            public void stateChanged(final ChangeEvent theEvent) {
+            }
+        });
+        mThickness.add(mySlider);
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (final ShapeAction s : myShapeActions) {
+            final JRadioButtonMenuItem rButton = new JRadioButtonMenuItem(s);
+            bGroup.add(rButton);
+            mTools.add(rButton);
+        }
+        
+        final DefaultAction aAbout = new DefaultAction("About...");
+        mHelp.add(aAbout);
+        
+        return mBar;
+    }
+    
+    /** 
+     * Creates the toolbar. 
+     * 
+     * @return The toolbar.
+     */
+    private JToolBar createToolBar() {
+        
+        myShapeActions = new ArrayList<ShapeAction>();
+        
+        myShapeActions.add(new ShapeAction("Line", 
+                new ImageIcon("files/line_bw.gif")));
+        myShapeActions.add(new ShapeAction("Rectangle", 
+                new ImageIcon("files/rectangle_bw.gif")));
+        myShapeActions.add(new ShapeAction("Ellipse", 
+                new ImageIcon("files/ellipse_bw.gif")));
+        
+        final JToolBar tb = new JToolBar();
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (final ShapeAction s : myShapeActions) {
+            final JToggleButton tButton = new JToggleButton(s);
+            bGroup.add(tButton);
+            tb.add(tButton);
+        }
+        
+        return tb;
+    }
+}

@@ -1,0 +1,55 @@
+package view;
+
+import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+
+public class LegacyShape {
+    
+    /** The shape of the object. */
+    private Shape myShape;
+    
+    /** The thickness of the brush. */
+    private int myThickness;
+    
+    /** The color of the object. */
+    private Color myColor;
+
+    public LegacyShape(final Shape theShape, final int theThickness, final Color theColor) {
+        
+        if (theShape instanceof Line2D.Double) {
+            final Line2D l = (Line2D.Double) theShape;
+            myShape = new Line2D.Double(l.getP1(), l.getP2());
+        } else if (theShape instanceof Rectangle2D.Double) {
+            final Rectangle2D r = (Rectangle2D.Double) theShape;
+            myShape = new Rectangle2D.Double(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        } else if (theShape instanceof Ellipse2D.Double) {
+            final Ellipse2D e = (Ellipse2D.Double) theShape;
+            myShape = new Ellipse2D.Double(e.getX(), e.getY(), e.getWidth(), e.getHeight());
+        } else {
+            throw new IllegalArgumentException("Shape type not recognized!");
+        }
+        
+        myThickness = theThickness;
+        
+        myColor = theColor;
+        
+    }
+    
+    public Shape getShape() {
+        return myShape;
+    }
+    
+    public int getThickness() {
+        return myThickness;
+    }
+    
+    public Color getColor() {
+        return myColor;
+    }
+        
+        
+
+}

@@ -1,0 +1,49 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Icon;
+
+/**
+ * Represents a shape action for the buttons in the paint project.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.19
+ */
+public class ShapeAction extends AbstractAction {
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = -3356090720714114039L;
+
+        /**
+         * Constructs an action to control a shape.
+         * 
+         * @param theName The name.
+         * @param theIcon The icon.
+         * @param theShape The shape.
+         */
+    ShapeAction(final String theName, final Icon theIcon) {
+        super(theName);
+        
+        // small icons are usually assigned to the menu
+        putValue(Action.SMALL_ICON, theIcon);
+        
+        // coordinate button selection
+        putValue(Action.SELECTED_KEY, true);
+    }
+
+    /**
+     * Sets the panel to the specified color.
+     * 
+     * {@inheritDoc}
+     */
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+    }
+}

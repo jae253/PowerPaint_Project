@@ -1,0 +1,57 @@
+package tools;
+
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
+import java.util.Locale;
+import javax.swing.ImageIcon;
+import model.DrawingPanel;
+
+public class RectangleTool extends ShapeTool implements ToolInterface {
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = 1610501114443484553L;
+    
+    /** The name of the shape for the icon. */
+    private static final String SHAPE_NAME = "Rectangle";
+    
+    /** Beginning of the file string. */
+    private static final String FILE_PREFIX = "files/" 
+            + SHAPE_NAME.toLowerCase(Locale.US);
+    
+    /** Ending of the file string, when using a colored icon. */
+    private static final String FILE_SUFFIX = ".gif";
+    
+    /** Ending of the file string, when using a black and white icon. */
+    private static final String BW_SUFFIX = "_bw" + FILE_SUFFIX;
+    
+    public RectangleTool(final DrawingPanel thePanel) {
+        super(SHAPE_NAME, new ImageIcon(FILE_PREFIX + BW_SUFFIX), thePanel);
+    }
+
+    @Override
+    public Shape calculateShape(final int theX1, final int theY1, 
+            final int theX2, final int theY2) {
+        int finalX = 0;
+        int finalY = 0;
+        final int width = Math.abs(theX2 - theX1);
+        final int height = Math.abs(theY2 - theY1);
+        if (theX1 < theX2) {
+            finalX = theX1;
+        } else {
+            finalX = theX2;
+        }
+        if (theY1 < theY2) {
+            finalY = theY1;
+        } else {
+            finalY = theY2;
+        }
+        
+        return new Rectangle2D.Double(finalX, finalY, width, height);
+    }
+    
+    @Override
+    public void changeToolUsed() {
+        myPanel.setCurrentTool(this);
+        super.setIcon(new ImageIcon(FILE_PREFIX + FILE_SUFFIX));
+    }
+}

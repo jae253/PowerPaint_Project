@@ -1,0 +1,168 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Line2D;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JPanel;
+
+
+/**
+ * Creates a drawing panel for the Paint program.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.19
+ */
+public class DrawingPanel extends JPanel {
+    
+    /** The background color of the panel. */
+    private static final Color BACKGROUND_COLOR = Color.WHITE;
+
+    /** The color to paint with. */
+    private static final Color FOREGROUND_COLOR = new Color(51, 0, 111);
+
+    /** The line width. */
+    private static final int LINE_WIDTH = 3;
+    
+    /** 
+     * A constant to set the intial line outside the bounds of the drawing panel. 
+     * DO NOT CHANGE!
+     */
+    private static final int INITIAL_COORDS = LINE_WIDTH * -1;
+    
+    /** Number of coordinates in the drawing shape. DO NOT CHANGE! */
+    private static final int COORD_COUNT = 4;
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = -3644129903653409515L;
+    
+    /** The coordinates of the shape. */
+    private int[] myCoords;
+
+    /** The list of shapes to draw. */
+    private List<Shape> myShapes;
+    
+    /** The list of shapes to store in memory. */
+    private List<LegacyShape> myLegacyShapes;
+    
+    /** 
+     * Constructs a new general line panel.
+     * 
+     * @param The preferred height of the panel.
+     * @param The preferred width of the panel.
+     *  
+     */
+    public DrawingPanel(final int theHeight, final int theWidth) {
+        super();
+        
+        myShapes = new ArrayList<Shape>();
+        myLegacyShapes = new ArrayList<LegacyShape>();
+        
+        myCoords = new int[COORD_COUNT];
+
+        for (int i = 0; i < COORD_COUNT; i++) {
+            myCoords[i] = INITIAL_COORDS;
+        }
+        
+        setPreferredSize(new Dimension(theWidth, theHeight));
+        setBackground(BACKGROUND_COLOR);
+        addMouseListener(new MyMouseListener());
+        addMouseMotionListener(new MyMouseListener());
+    }
+
+    /**
+     * Paints the current path.
+     * 
+     * @param theGraphics The graphics context to use for painting.
+     */
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        
+        final Line2D line = new Line2D.Double(myCoords[0], myCoords[1], 
+                myCoords[2], myCoords[COORD_COUNT - 1]);
+
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        g2d.setPaint(FOREGROUND_COLOR);
+        g2d.setStroke(new BasicStroke(LINE_WIDTH));
+        g2d.draw(line);
+        
+        for (final LegacyShape s : myLegacyShapes) {
+            g2d.setPaint(s.getColor());
+            
+            g2d.setStroke(new BasicStroke(s.getThickness()));
+            g2d.draw(s.getShape());
+        }
+    }
+
+    // Inner Class
+
+    /**
+     * Listens for mouse clicks, to draw on our panel.
+     */
+    private class MyMouseListener extends MouseAdapter {
+        /**
+         * Handles a click event.
+         * 
+         * @param theEvent The event.
+         */
+        @Override
+        public void mousePressed(final MouseEvent theEvent) {
+            myCoords[0] = theEvent.getX();
+            myCoords[1] = theEvent.getY();
+            myCoords[2] = theEvent.getX();
+            myCoords[COORD_COUNT - 1] = theEvent.getY();
+            repaint();
+        }
+        
+        /**
+         * Handles a drag event.
+         * 
+         * @param theEvent The event.
+         */
+        @Override
+        public void mouseDragged(final MouseEvent theEvent) {
+            myCoords[2] = theEvent.getX();
+            myCoords[COORD_COUNT - 1] = theEvent.getY();
+            repaint();
+        }
+        
+        /**
+         * Handles a release event.
+         * 
+         * @param theEvent The event.
+         */
+        @Override
+        public void mouseReleased(final MouseEvent theEvent) {
+            myShapes.add(new Line2D.Double((double) myCoords[0], (double) myCoords[1], 
+                    (double) myCoords[2], (double) myCoords[COORD_COUNT - 1]));
+            
+            myLegacyShapes.add(new LegacyShape(new Line2D.Double((double) myCoords[0], 
+                    (double) myCoords[1], (double) myCoords[2], 
+                    (double) myCoords[COORD_COUNT - 1]), LINE_WIDTH, FOREGROUND_COLOR));
+            
+            for (int i = 0; i < COORD_COUNT; i++) {
+                myCoords[i] = INITIAL_COORDS;
+            }
+            repaint();
+        }
+        
+    }
+
+}

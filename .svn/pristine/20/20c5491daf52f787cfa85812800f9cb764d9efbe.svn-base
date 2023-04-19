@@ -1,0 +1,90 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package model;
+
+import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+
+/**
+ * Represents a pre-constructed shape.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.29
+ */
+public class LegacyShape {
+    
+    /** The shape of the object. */
+    private final Shape myShape;
+    
+    /** The thickness of the brush. */
+    private final int myThickness;
+    
+    /** The color of the object. */
+    private final Color myColor;
+
+    
+    /** 
+     * Constructs a shape to store in memory.
+     * 
+     * @param The shape.
+     * @param The thickness.
+     * @param The color.
+     */
+    public LegacyShape(final Shape theShape, final int theThickness, final Color theColor) {
+        
+        if (theShape instanceof Line2D.Double) {
+            final Line2D l = (Line2D.Double) theShape;
+            myShape = new Line2D.Double(l.getP1(), l.getP2());
+        } else if (theShape instanceof Rectangle2D.Double) {
+            final Rectangle2D r = (Rectangle2D.Double) theShape;
+            myShape = new Rectangle2D.Double(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        } else if (theShape instanceof Ellipse2D.Double) {
+            final Ellipse2D e = (Ellipse2D.Double) theShape;
+            myShape = new Ellipse2D.Double(e.getX(), e.getY(), e.getWidth(), e.getHeight());
+        } else {
+            throw new IllegalArgumentException("Shape type not recognized!");
+        }
+        
+        myThickness = theThickness;
+        
+        myColor = theColor;
+        
+    }
+    
+    public Shape getShape() {
+        
+        final Shape returnShape;
+        
+        if (myShape instanceof Line2D.Double) {
+            final Line2D.Double l = (Line2D.Double) myShape;
+            returnShape = new Line2D.Double(l.getP1(), l.getP2());
+        } else if (myShape instanceof Rectangle2D.Double) {
+            final Rectangle2D.Double r = (Rectangle2D.Double) myShape;
+            returnShape = new Rectangle2D.Double(r.getX(), r.getY(), 
+                    r.getWidth(), r.getHeight());
+        } else {
+            final Ellipse2D.Double e = (Ellipse2D.Double) myShape;
+            returnShape = new Ellipse2D.Double(e.getX(), e.getY(), 
+                    e.getWidth(), e.getHeight());
+        }
+        
+        return returnShape;
+    }
+    
+    public int getThickness() {
+        return myThickness;
+    }
+    
+    public Color getColor() {
+        return myColor;
+    }
+        
+        
+
+}

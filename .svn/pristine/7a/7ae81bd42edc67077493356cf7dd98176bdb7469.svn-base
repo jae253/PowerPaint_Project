@@ -1,0 +1,275 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import model.DefaultAction;
+import model.DrawingPanel;
+import model.ShapeAction;
+
+/*
+ * For some unholy reason, none of these damned setEnabled() methods 
+ * want to work for whatever reason and I have legitimately spent the last 3 hours 
+ * mulling over this single problem
+ * 
+ * Ultimately I decided its not worth the trouble and 
+ * just finished up the other shapes
+ */
+
+
+
+/**
+ * Creates a GUI for the Paint program.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.29
+ */
+public final class PaintGUI implements PropertyChangeListener {
+    
+    /** The icon of the application. */ 
+    private static final ImageIcon IMG = new ImageIcon("files/paint_icon.png");
+    
+    /** A ToolKit. */
+    private static final Toolkit KIT = Toolkit.getDefaultToolkit();
+    
+    /** The Dimension of the screen. */
+    private static final Dimension SCREEN_SIZE = KIT.getScreenSize();
+    
+    /** The width of the screen. */
+    private static final int SCREEN_WIDTH = SCREEN_SIZE.width;
+    
+    /** The height of the screen. */
+    private static final int SCREEN_HEIGHT = SCREEN_SIZE.height;
+    
+    /** The scaling of the JFrame window relative to the size of the screen. */
+    private static final int SCALE = 3;
+    
+    /** The initial brush thickness. */
+    private static final int INITIAL_BRUSH_THICKNESS = 3;
+    
+    /** The max brush thickness. */
+    private static final int MAX_BRUSH_THICKNESS = 15;
+
+    /** The spacing between numbers on the thickness slider. */
+    private static final int MAJOR_TICK_SPACING = 5;
+
+    /** The spacing between tick marks on the thickness slider. */
+    private static final int MINOR_TICK_SPACING = 1;
+    
+    /** The JFrame. */
+    private static final JFrame FRAME = new JFrame("TCSS 305 Paint – Autumn 2022");
+    
+    /** Array of labels for the action buttons. */
+    private static final String[] LABELS = {"Color...", "Clear", "About..."};
+    
+    /** The toolbar. */
+    private JToolBar myToolBar;
+    
+    /** The slider. */
+    private final JSlider mySlider = new JSlider(SwingConstants.HORIZONTAL, 0, 
+            MAX_BRUSH_THICKNESS, INITIAL_BRUSH_THICKNESS);
+    
+    /** The drawing panel. */
+    private final DrawingPanel myDrawingPanel = 
+            new DrawingPanel(mySlider);
+    
+    /** Array of actions. */
+    private DefaultAction[] myActions;
+    
+    /** The collection of shape actions. */
+    private List<ShapeAction> myShapeActions;
+    
+    /** Default GUI constructor. */
+    public PaintGUI() {
+        super();
+        
+        myToolBar = new JToolBar();
+        myActions = new DefaultAction[LABELS.length];
+        
+        for (int i = 0; i < LABELS.length; i++) {
+            myActions[i] = new DefaultAction(LABELS[i]); 
+            myActions[i].addPropertyChangeListener(this);
+        }
+        //myActions[1].enable(false);
+        
+        myDrawingPanel.addPropertyChangeListener(this);
+        
+        start();
+    }
+    
+    /** Performs all tasks necessary to display the UI. */
+    public void start() {
+        
+        
+        try {           
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        
+        } catch (final UnsupportedLookAndFeelException e) {
+            System.out.println("UnsupportedLookAndFeelException");
+        } catch (final ClassNotFoundException e) {
+            System.out.println("ClassNotFoundException");
+        } catch (final InstantiationException e) {
+            System.out.println("InstantiationException");
+        } catch (final IllegalAccessException e) {
+            System.out.println("IllegalAccessException");
+        }
+        
+        FRAME.setIconImage(IMG.getImage());
+        
+        myToolBar = createToolBar();
+
+        FRAME.add(myToolBar, BorderLayout.SOUTH);
+        
+        FRAME.setJMenuBar(createMenuBar());
+        
+        FRAME.add(myDrawingPanel, BorderLayout.CENTER);
+        
+        FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        FRAME.setSize(new Dimension(SCREEN_WIDTH / SCALE, SCREEN_HEIGHT / SCALE));
+        FRAME.setLocationRelativeTo(null);
+        FRAME.setVisible(true);
+        
+    }
+    
+    /** 
+     * Creates the menubar. 
+     * 
+     * @return The menubar.
+     */
+    private JMenuBar createMenuBar() {
+        final JMenuBar mBar = new JMenuBar();
+        final JMenu mOptions = new JMenu("Options");
+        final JMenu mThickness = new JMenu("Thickness");
+        final JMenu mHelp = new JMenu("Help");
+        final JMenu mTools = new JMenu("Tools");
+        
+        
+        mBar.add(mOptions);
+        mBar.add(mTools);
+        mBar.add(mHelp);
+        
+        mOptions.add(mThickness);
+        mOptions.addSeparator();
+        mOptions.add(myActions[0]);
+        mOptions.addSeparator();
+        mOptions.add(myActions[1]);
+        
+        mySlider.setMajorTickSpacing(MAJOR_TICK_SPACING);
+        mySlider.setMinorTickSpacing(MINOR_TICK_SPACING);
+        mySlider.setPaintLabels(true);
+        mySlider.setPaintTicks(true);
+        mThickness.add(mySlider);
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (final ShapeAction s : myShapeActions) {
+            final JRadioButtonMenuItem rButton = new JRadioButtonMenuItem(s);
+            s.addPropertyChangeListener(this);
+            bGroup.add(rButton);
+            mTools.add(rButton);
+        }
+        
+        mHelp.add(myActions[2]);
+        
+        return mBar;
+    }
+    
+    /** 
+     * Creates the toolbar. 
+     * 
+     * @return The toolbar.
+     */
+    private JToolBar createToolBar() {
+        
+        myShapeActions = new ArrayList<ShapeAction>();
+        
+        myShapeActions.add(new ShapeAction("Line", 
+                new ImageIcon("files/line_bw.gif")));
+        myShapeActions.add(new ShapeAction("Rectangle", 
+                new ImageIcon("files/rectangle_bw.gif")));
+        myShapeActions.add(new ShapeAction("Ellipse", 
+                new ImageIcon("files/ellipse_bw.gif")));
+        
+        final JToolBar tb = new JToolBar();
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (final ShapeAction s : myShapeActions) {
+            final JToggleButton tButton = new JToggleButton(s);
+            bGroup.add(tButton);
+            tb.add(tButton);
+        }
+        
+        return tb;
+    }
+    
+    private void colorHelper() {
+        final Color result = JColorChooser.showDialog(null, "A Color Chooser", 
+                myDrawingPanel.getCurrentColor());
+        
+        // System.out.println("Color chosen: " + result);
+        
+        myDrawingPanel.setCurrentColor(result);
+    }
+    
+    private void clearHelper() {
+        // System.out.println("Clear button pressed!");
+        
+        myActions[1].setEnabled(false);
+        myDrawingPanel.resetDrawing();
+    }
+    
+    
+     
+    
+    @Override
+    public void propertyChange(final PropertyChangeEvent theEvent) {
+        
+        //System.out.println("Event detected! " + theEvent);
+        
+        if (theEvent.getPropertyName().equals("SwingSelectedKey") 
+                && theEvent.getNewValue().equals(true)) {
+            final ShapeAction s = (ShapeAction) theEvent.getSource();
+            //System.out.println("New tool selected: " + s.getName());
+            myDrawingPanel.setCurrentTool(s.getName());
+        }
+        if (theEvent.getPropertyName().equals("Shape drawn")) {
+            // System.out.println("Shape has been drawn!");
+            myActions[1].setEnabled(true);
+        } else if (theEvent.getPropertyName().equals(LABELS[1])) {
+            clearHelper();
+        } else if (theEvent.getPropertyName().equals(LABELS[0])) {
+            colorHelper();
+        } else if (theEvent.getPropertyName().equals(LABELS[2])) {
+                       
+            javax.swing.JOptionPane.showMessageDialog(
+                    null, "Jacob Erickson\nTCSS 305 - Autumn 2022", 
+                    "TCSS 305 Paint", JOptionPane.DEFAULT_OPTION, IMG);
+        }
+    }
+    
+    
+    
+}

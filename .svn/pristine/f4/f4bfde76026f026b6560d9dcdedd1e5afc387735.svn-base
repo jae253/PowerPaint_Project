@@ -1,0 +1,35 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+
+
+/**
+ * Represents a default action for the buttons in the paint project.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.19
+ */
+public class DefaultAction extends AbstractAction {
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = -6356469399616697665L;
+    
+    DefaultAction(final String theName) {
+        super(theName);
+    }
+    
+    /**
+     * Does something.
+     * 
+     * {@inheritDoc}
+     */
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+    }
+}

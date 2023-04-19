@@ -1,0 +1,320 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package model;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+
+
+/**
+ * Creates a drawing panel for the Paint program.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.29
+ */
+public class DrawingPanel extends JPanel {
+
+    /** The background color of the panel. */
+    private static final Color BACKGROUND_COLOR = Color.WHITE;
+    
+    /** UW Purple color. */
+    private static final Color UW_PURPLE = new Color(51, 0, 111);
+    
+    /** 
+     * A constant to set the intial line outside the bounds of the drawing panel. 
+     * DO NOT CHANGE!
+     */
+    private static final int INITIAL_COORDS = -15;
+    
+    /** Number of coordinates in the drawing shape. DO NOT CHANGE! */
+    private static final int COORD_COUNT = 4;
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = 8080502492180943995L;
+    
+    /** List of available tools. */
+    private static final String[] TOOLS = {"Line", "Rectangle", "Ellipse", "Pencil"};
+    
+    /** The color to paint with. */
+    private Color myCurrentColor = UW_PURPLE;
+    
+    /** The slider. */
+    private final JSlider mySlider;
+    
+    /** The coordinates of the shape. */
+    private int[] myCoords;
+
+    /** The list of shapes to draw. */
+    private final List<Shape> myShapes;
+    
+    /** The list of shapes to store in memory. */
+    private final List<LegacyShape> myLegacyShapes;
+    
+    /** Support for firing property change events from this class. */
+    private final PropertyChangeSupport myPCS = new PropertyChangeSupport(this);
+
+    /** The current tool set. */
+    private String myCurrentTool = TOOLS[0];
+    
+    /** 
+     * Constructs a new drawing panel.
+     * 
+     * @param The preferred height of the panel.
+     * @param The preferred width of the panel.
+     * @param The slider to read the thickness from.
+     *  
+     */
+    public DrawingPanel(final JSlider theSlider) {
+        super();
+        
+        mySlider = theSlider;
+        myShapes = new ArrayList<Shape>();
+        myLegacyShapes = new ArrayList<LegacyShape>();
+        
+        myCoords = new int[COORD_COUNT];
+
+        for (int i = 0; i < COORD_COUNT; i++) {
+            myCoords[i] = INITIAL_COORDS;
+        }
+
+        setCursor(new Cursor(1));
+        setBackground(BACKGROUND_COLOR);
+        addMouseListener(new MyMouseListener());
+        addMouseMotionListener(new MyMouseListener());
+    }
+    
+    /** 
+     * Sets the color of the brush.
+     * 
+     * @param The color.
+     */
+    public void setCurrentColor(final Color theColor) {
+        myCurrentColor = theColor;
+    }
+    
+    /** 
+     * Returns the color of the brush.
+     * 
+     * @return The current color.
+     */
+    public Color getCurrentColor() {
+        return myCurrentColor;
+    }
+    
+    /** 
+     * Sets the tool used.
+     * 
+     * @param The tool.
+     */
+    public void setCurrentTool(final String theTool) {
+        myCurrentTool = theTool;
+    }
+    
+    /** 
+     * Returns the tool being used.
+     * 
+     * @return The current tool.
+     */
+    public String getCurrentTool() {
+        return myCurrentTool;
+    }
+    
+    /** 
+     * Clears the drawing panel.
+     */
+    public void resetDrawing() {
+        myLegacyShapes.clear();
+        repaint();
+    }
+    /**
+     * 
+     * @param The first x coordinate.
+     * @param The first y coordinate.
+     * @param The second x coordinate.
+     * @param The second y coordinate.
+     * @param Determinant for what shape to calculate (true for rectangle, false for ellipse)
+     * @return
+     */
+    public RectangularShape calculateShape(final int x1, final int y1, 
+            final int x2, final int y2, final boolean theStatus) {
+        final RectangularShape finalShape;
+        final int width = Math.abs(x2 - x1);
+        final int height = Math.abs(y2 - y1);
+        int finalX = 0;
+        int finalY = 0;
+        
+        
+        if (x1 < x2) {
+            finalX = x1;
+        } else {
+            finalX = x2;
+        }
+        
+        if (y1 < y2) {
+            finalY = y1;
+        } else {
+            finalY = y2;
+        }
+        if (theStatus) {
+            finalShape = new Rectangle2D.Double(finalX, finalY, width, height);
+        } else {
+            finalShape = new Ellipse2D.Double(finalX, finalY, width, height);
+        }
+        return finalShape;
+    }
+    
+    private Shape produceShape() {
+        Shape shape = null;
+        if (myCurrentTool.equals(TOOLS[0])) {
+            shape = new Line2D.Double(myCoords[0], myCoords[1], 
+                    myCoords[2], myCoords[COORD_COUNT - 1]);
+        } else if (myCurrentTool.equals(TOOLS[1])) {
+            shape = calculateShape(myCoords[0], myCoords[1], 
+                    myCoords[2], myCoords[COORD_COUNT - 1], true);
+        } else if (myCurrentTool.equals(TOOLS[2])) {
+            shape = calculateShape(myCoords[0], myCoords[1], 
+                    myCoords[2], myCoords[COORD_COUNT - 1], false);
+        }
+        
+        return shape;
+    }
+
+    /**
+     * Paints the current path.
+     * 
+     * @param theGraphics The graphics context to use for painting.
+     */
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        for (final LegacyShape s : myLegacyShapes) {
+            g2d.setPaint(s.getColor());
+            
+            g2d.setStroke(new BasicStroke(s.getThickness()));
+            g2d.draw(s.getShape());
+        }
+        
+        g2d.setPaint(myCurrentColor);
+        g2d.setStroke(new BasicStroke(mySlider.getValue()));
+        g2d.draw(produceShape());
+    }
+    
+    /**
+     * Adds a listener for property change events from this class.
+     * 
+     * @param theListener a PropertyChangeListener to add.
+     */
+    public void addPropertyChangeListener(final PropertyChangeListener theListener) {
+        myPCS.addPropertyChangeListener(theListener);
+    }
+    
+    /**
+     * Removes a listener for property change events from this class.
+     * 
+     * @param theListener a PropertyChangeListener to remove.
+     */
+    public void removePropertyChangeListener(final PropertyChangeListener theListener) {
+        myPCS.removePropertyChangeListener(theListener);
+    }
+    
+    
+
+    // Inner Class
+
+    /**
+     * Listens for mouse clicks, to draw on our panel.
+     */
+    private class MyMouseListener extends MouseAdapter {
+        /**
+         * Handles a click event.
+         * 
+         * @param theEvent The event.
+         */
+        
+        @Override
+        public void mousePressed(final MouseEvent theEvent) {
+            if (mySlider.getValue() > 0) {               
+                for (int i = 0; i < 2; i++) {
+                    myCoords[i * 2] = theEvent.getX();
+                    myCoords[(i * 2) + 1] = theEvent.getY();
+                }
+            } 
+        }
+        
+        /**
+         * Handles a drag event.
+         * 
+         * @param theEvent The event.
+         */
+        @Override
+        public void mouseDragged(final MouseEvent theEvent) {
+            if (mySlider.getValue() > 0) {
+                myCoords[2] = theEvent.getX();
+                myCoords[COORD_COUNT - 1] = theEvent.getY();
+                repaint();
+            }
+        }
+        
+        /**
+         * Handles a release event.
+         * 
+         * @param theEvent The event.
+         */
+        @Override
+        public void mouseReleased(final MouseEvent theEvent) {
+            if (mySlider.getValue() > 0) {
+                
+                final Shape shape = produceShape();
+                
+                myShapes.add(shape);
+                
+                myLegacyShapes.add(new LegacyShape(shape, mySlider.getValue(), 
+                        myCurrentColor));
+                
+                for (int i = 0; i < COORD_COUNT; i++) {
+                    myCoords[i] = INITIAL_COORDS;
+                }
+                myPCS.firePropertyChange("Shape drawn", null, 1);
+                myPCS.firePropertyChange("enable", null, 1);
+                repaint();
+            }
+        }
+        
+        
+    }
+
+
+
+    
+
+
+
+
+    
+
+}

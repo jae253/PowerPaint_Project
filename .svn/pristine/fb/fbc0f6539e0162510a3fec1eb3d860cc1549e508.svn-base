@@ -1,0 +1,77 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package model;
+
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeSupport;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Icon;
+
+/**
+ * Represents a shape action for the buttons in the paint project.
+ * 
+ * @author Jacob Erickson
+ * @version 2022.11.29
+ */
+public class ShapeAction extends AbstractAction {
+    
+    /** Generated serialization number. */
+    private static final long serialVersionUID = 6965233873475493669L;
+
+    /** Support for firing property change events from this class. */
+    private final PropertyChangeSupport myPCS = new PropertyChangeSupport(this);
+
+    /** The label on the Action. */
+    private final String myName;
+    
+    /** The label on the Action. */
+    private final Icon myIcon;
+
+        /**
+         * Constructs an action to control a shape.
+         * 
+         * @param theName The name.
+         * @param theIcon The icon.
+         */
+    public ShapeAction(final String theName, final Icon theIcon) {
+        super(theName);
+        
+        myName = theName;
+        myIcon = theIcon;
+        
+        // small icons are usually assigned to the menu
+        putValue(Action.SMALL_ICON, theIcon);
+        
+        // coordinate button selection
+        putValue(Action.SELECTED_KEY, true);
+    }
+
+    
+    /** Returns the name of the object. 
+     * @return The name. */
+    
+    public String getName() {
+        return myName;
+    }
+
+    /** Returns the icon of the object. 
+     * @return The name. */
+    
+    public Icon getIcon() {
+        return myIcon;
+    }
+    
+    /**
+     * Fires an event based on the name of the Action.
+     * 
+     * {@inheritDoc}
+     */
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        myPCS.firePropertyChange(myName, null, myName);
+    }
+}

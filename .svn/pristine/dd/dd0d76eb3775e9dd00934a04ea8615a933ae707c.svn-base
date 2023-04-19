@@ -1,0 +1,28 @@
+package tools;
+
+import java.awt.Shape;
+import javax.swing.Icon;
+
+public interface ToolInterface {
+    
+    /**
+     * Returns a shape based on a set of coordinates passed in.
+     * 
+     * @param theX1 The first x coordinate.
+     * @param theY1 The first y coordinate.
+     * @param theX2 The second x coordinate.
+     * @param theY2 The second y coordinate.
+     * @return The calculated shape.
+     */
+    Shape calculateShape(int theX1, int theY1, int theX2, int theY2);
+    
+    void changeToolUsed();
+    
+    Icon getIcon();
+    
+    String getName();
+    
+    void setIcon();
+    
+    
+}

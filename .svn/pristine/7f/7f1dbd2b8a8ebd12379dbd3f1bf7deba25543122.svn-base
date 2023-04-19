@@ -1,0 +1,246 @@
+/*
+ * TCSS 305 Autumn 2022
+ * Assignment 5
+ */
+
+package view;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.*;
+
+import javax.swing.*;
+import javax.swing.event.MouseInputListener;
+
+import java.util.*;
+
+/**
+ * Presents the GUI for the PowerPaint application.
+ * 
+ * @author Alan Fowler (acfowler@uw.edu)
+ * @version Autumn 2022
+ */
+public final class PaintGUI {
+    
+    // constants (if any)    
+    /** A ToolKit. */
+    private static final Toolkit KIT = Toolkit.getDefaultToolkit();
+    
+    /** The Dimension of the screen. */
+    private static final Dimension SCREEN_SIZE = KIT.getScreenSize();
+    
+    /** The width of the screen. */
+    private static final int SCREEN_WIDTH = SCREEN_SIZE.width;
+    
+    /** The height of the screen. */
+    private static final int SCREEN_HEIGHT = SCREEN_SIZE.height;
+    
+    /** The scaling of the JFrame window relative to the size of the screen. */
+    private static final int SCALE = 3;
+    
+    private static final int INITIAL_BRUSH_THICKNESS = 3;
+    
+    private static final int MAX_BRUSH_THICKNESS = 15;
+    
+    private static final Color UW_PURPLE = new Color(51, 0, 111);
+
+    private static final int MAJOR_TICK_SPACING = 5;
+
+    private static final int MINOR_TICK_SPACING = 1;
+    
+    
+    
+    
+    // instance fields
+    /** The JFrame. */
+    private JFrame myFrame;
+    
+    private JToolBar myToolBar;
+    
+    private JMenuBar myMenuBar;
+    
+    private JSlider mySlider;
+    
+    private JPanel myPanel;
+
+    private ArrayList<ShapeAction> shapeActions;
+    
+    private Path2D myLine;
+
+
+    public PaintGUI() {
+        super();
+        
+        // initialize instance fields here
+        myFrame = new JFrame("TCSS 305 Paint - Autumn 2022");
+        
+        myToolBar = new JToolBar();
+        
+        myMenuBar = new JMenuBar();
+        
+        mySlider = new JSlider();
+        // setup and display the GUI
+        start();
+    }
+    
+    /**
+     * Performs all tasks necessary to display the UI.
+     */
+    protected void start() {
+        try {           
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        
+        } catch (final UnsupportedLookAndFeelException e) {
+            System.out.println("UnsupportedLookAndFeelException");
+        } catch (final ClassNotFoundException e) {
+            System.out.println("ClassNotFoundException");
+        } catch (final InstantiationException e) {
+            System.out.println("InstantiationException");
+        } catch (final IllegalAccessException e) {
+            System.out.println("IllegalAccessException");
+        }
+        
+        final ImageIcon img = new ImageIcon("files/w_small.png");
+        myFrame.setIconImage(img.getImage());
+        
+        myToolBar = createToolBar();
+        
+        
+        
+//        myToolBar.add(mySlider);
+        
+        
+
+        
+        myFrame.add(myToolBar, BorderLayout.SOUTH);
+        
+        myFrame.setJMenuBar(createMenuBar());
+        
+        
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myFrame.setSize(new Dimension(SCREEN_WIDTH / SCALE, SCREEN_HEIGHT / SCALE));
+        myFrame.setLocationRelativeTo(null);
+        myFrame.setVisible(true);
+        
+    }
+    
+    private JMenuBar createMenuBar() {
+        final JMenuBar mBar = new JMenuBar();
+        final JMenu mOptions = new JMenu("Options");
+        final JMenu mThickness = new JMenu("Thickness");
+        final JMenu mHelp = new JMenu("Help");
+        final JMenu mTools = new JMenu("Tools");
+        
+        final DefaultAction aColor = new DefaultAction("Color...");
+        final DefaultAction aClear = new DefaultAction("Clear");
+        aClear.setEnabled(false);
+        
+        mBar.add(mOptions);
+        mBar.add(mTools);
+        mBar.add(mHelp);
+        
+        mOptions.add(mThickness);
+        mOptions.addSeparator();
+        mOptions.add(aColor);
+        mOptions.addSeparator();
+        mOptions.add(aClear);
+        
+        mySlider = new JSlider(SwingConstants.HORIZONTAL, 0, MAX_BRUSH_THICKNESS,
+                INITIAL_BRUSH_THICKNESS);
+        mySlider.setMajorTickSpacing(MAJOR_TICK_SPACING);
+        mySlider.setMinorTickSpacing(MINOR_TICK_SPACING);
+        mySlider.setPaintLabels(true);
+        mySlider.setPaintTicks(true);
+        mThickness.add(mySlider);
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (ShapeAction s : shapeActions) {
+            final JRadioButtonMenuItem rButton = new JRadioButtonMenuItem(s);
+            bGroup.add(rButton);
+            mTools.add(rButton);
+        }
+        
+        final DefaultAction aAbout = new DefaultAction("About...");
+        mHelp.add(aAbout);
+        
+        return mBar;
+    }
+    
+    private JToolBar createToolBar() {
+        
+        shapeActions = new ArrayList<ShapeAction>();
+        
+        shapeActions.add(new ShapeAction("Line", 
+                new ImageIcon("files/line_bw.gif")));
+        shapeActions.add(new ShapeAction("Rectangle", 
+                new ImageIcon("files/rectangle_bw.gif")));
+        shapeActions.add(new ShapeAction("Ellipse", 
+                new ImageIcon("files/ellipse_bw.gif")));
+        
+        final JToolBar tb = new JToolBar();
+        
+        final ButtonGroup bGroup = new ButtonGroup();
+        for (ShapeAction s : shapeActions) {
+            final JToggleButton tButton = new JToggleButton(s);
+            bGroup.add(tButton);
+            tb.add(tButton);
+        }
+        
+        return tb;
+    }
+    
+    private class DefaultAction extends AbstractAction {
+        /** Generated serialization number. */
+        private static final long serialVersionUID = 4274544926717593043L;
+
+        DefaultAction(final String theName) {
+            super(theName);
+        }
+        
+        /**
+         * Sets the panel to the specified color.
+         * 
+         * {@inheritDoc}
+         */
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+        }
+    }
+    
+    private class ShapeAction extends AbstractAction {
+    
+        /** Generated serialization number. */
+        private static final long serialVersionUID = -3356090720714114039L;
+    
+            /**
+             * Constructs an action to control a shape.
+             * 
+             * @param theName The name.
+             * @param theIcon The icon.
+             * @param theShape The shape.
+             */
+        ShapeAction(final String theName, final Icon theIcon) {
+            super(theName);
+            
+            // small icons are usually assigned to the menu
+            putValue(Action.SMALL_ICON, theIcon);
+            
+            // coordinate button selection
+            putValue(Action.SELECTED_KEY, true);
+        }
+
+        /**
+         * Sets the panel to the specified color.
+         * 
+         * {@inheritDoc}
+         */
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+        }
+    }
+
+}
